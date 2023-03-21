@@ -1,7 +1,5 @@
 import React from 'react'
 import CharacterList from './components/CharacterList'
-import Character from './components/Character'
-import {useEffect, useState} from 'react'
 
 function App() {
     return (

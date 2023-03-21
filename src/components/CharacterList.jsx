@@ -1,57 +1,69 @@
-import {useEffect, useState} from "react"
-import Character from "./Character"
-
-function NavPage({page,setPages}) {
-    return (
-        <div className='d-flex justify-content-between align-items-center'>
-            <p>Page : {page}</p>
-            <button
-                onClick={() => {
-                    setPages(page + 1)
-                }}
-                className='btn btn-primary btn-sm '>Next Page</button>
-        </div>
-    )
-}
+import { useEffect, useState } from "react";
+import { callBDD } from "../assets/functions";
+import NavPage from "./navPage";
+import Character from "./Character";
 
 function CharacterList() {
-    const [characters, setCharacters] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [page, setPages] = useState(1)
+  const [characters, setCharacters] = useState([]);
+  const [listCharacters, setListCharacters] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [page, setPages] = useState(1);
 
-    useEffect(() => {
+  const addList = (page) => {
+    callBDD(page).then((data) =>{
+      const newData = characters.concat(data.results)
+      setCharacters(newData)
+      setListCharacters(newData)
+    })
+  };
 
-        const fetchData = async () => {
-            const response = await fetch(`https://rickandmortyapi.com/api/character?page=${page}`)
-            const data = await response.json()
-            setLoading(false)
-            setCharacters(data.results);
-        }
+  useEffect(() => {
+    addList(page)
+  }, []);
 
-        fetchData()
-    }, [page])
+  const handleChange = (e) => {
+    setBusqueda(e.target.value);
+    searchFilter(e.target.value);
+  };
 
-
-    return (
-        <div className="container">
-            <NavPage page={page} setPages={setPages}/>
-            {
-                loading ? ( <h1>loading</h1>) : 
-                <div className="row">
-                {
-                    characters.map(character => {
-                        return (
-                            <div className="col-md-4" key={character.id}>
-                                <Character  character={character}/>
-                            </div>
-                        )
-                    })
-                }
-                </div>
-            }
-            <NavPage page={page} setPages={setPages}/>
-        </div>
-    )
+  const searchFilter = (busquedaRealizada) => {
+    let resultadosBusqueda = listCharacters.filter((elemento) => {
+      if (
+        elemento.name
+          .toString()
+          .toLowerCase()
+          .includes(busquedaRealizada.toLowerCase())
+      ){
+        return elemento;
+      }
+    });
+    setCharacters(resultadosBusqueda);
+  };
+  return (
+    <div className="container">
+      <div>
+        <input
+          type="text"
+          value={busqueda}
+          placeholder="busqueda por nombre"
+          onChange={handleChange}
+        />
+      </div>
+      {
+      <div className="row">
+        {characters.map((character) => {
+          return (
+            <div className="col-md-4" key={character.id}>
+              <Character character={character}/>
+            </div>
+          );
+        })}
+      </div>
+    }
+      <NavPage page={page} setPages={setPages} addList={addList}/>
+    </div>
+ 
+  );
 }
 
-export default CharacterList
+export default CharacterList;
